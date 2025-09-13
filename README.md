@@ -66,10 +66,11 @@ EAC 採用分層式防禦，涵蓋：
 ## 技術示例（Pseudo-code）
 
 ### 檔案完整性檢查
+
 ```pseudo
 if hash(file_binary) != expected_hash:
     flag_violation("Client binary mismatch detected")
-````
+```
 
 ### 伺服器權威判斷（反速度掛）
 
