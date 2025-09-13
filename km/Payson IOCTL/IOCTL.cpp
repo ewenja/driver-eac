@@ -2,10 +2,10 @@
 #include <windef.h>
 #include <intrin.h>
 
-// ÅX°Ê¦WºÙ»P²Å¸¹Ãì±µ
+// é©…å‹•åç¨±èˆ‡ç¬¦è™Ÿéˆæ¥
 UNICODE_STRING DriverName, SymbolicLinkName;
 
-// µ²ºc©w¸q
+// çµæ§‹å®šç¾©
 typedef struct _SystemBigpoolEntry {
     PVOID VirtualAddress;
     ULONG_PTR NonPaged : 1;
@@ -22,17 +22,17 @@ typedef enum _SystemInformationClass {
     SystemBigpoolInformationClass = 0x42,
 } SystemInformationClass;
 
-// ¥~³¡¨ç¦¡«Å§i
+// å¤–éƒ¨å‡½å¼å®£å‘Š
 extern "C" NTSTATUS NTAPI IoCreateDriver(PUNICODE_STRING DriverName, PDRIVER_INITIALIZE InitializationFunction);
 extern "C" PVOID NTAPI PsGetProcessSectionBaseAddress(PEPROCESS Process);
 extern "C" NTSTATUS NTAPI ZwQuerySystemInformation(SystemInformationClass systemInformationClass, PVOID systemInformation, ULONG systemInformationLength, PULONG returnLength);
 
-// ±±¨î½X»P±`¼Æ
+// æ§åˆ¶ç¢¼èˆ‡å¸¸æ•¸
 #define PaysonRead CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1363, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 #define PaysonBase CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1369, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 #define PaysonSecurity 0x85F8AC8
 
-// Windows build ¹ïÀ³ offsets
+// Windows build å°æ‡‰ offsets
 #define Win1803 17134
 #define Win1809 17763
 #define Win1903 18362
@@ -44,7 +44,7 @@ extern "C" NTSTATUS NTAPI ZwQuerySystemInformation(SystemInformationClass system
 #define PageOffsetSize 12
 static const UINT64 PageMask = (~0xfull << 8) & 0xfffffffffull;
 
-// ½Ğ¨Dµ²ºc
+// è«‹æ±‚çµæ§‹
 typedef struct _ReadWriteRequest {
     INT32 Security;
     INT32 ProcessId;
@@ -60,14 +60,14 @@ typedef struct _BaseAddressRequest {
     ULONGLONG* Address;
 } BaseAddressRequest, * PBaseAddressRequest;
 
-// ª«²z°O¾ĞÅéÅª¨ú
+// ç‰©ç†è¨˜æ†¶é«”è®€å–
 NTSTATUS ReadPhysicalMemory(PVOID TargetAddress, PVOID Buffer, SIZE_T Size, SIZE_T* BytesRead) {
     MM_COPY_ADDRESS CopyAddress = {};
     CopyAddress.PhysicalAddress.QuadPart = (LONGLONG)TargetAddress;
     return MmCopyMemory(Buffer, CopyAddress, Size, MM_COPY_MEMORY_PHYSICAL, BytesRead);
 }
 
-// §PÂ_ Windows ª©¥»¹ïÀ³ offset
+// åˆ¤æ–· Windows ç‰ˆæœ¬å°æ‡‰ offset
 INT32 GetWindowsVersion() {
     RTL_OSVERSIONINFOW VersionInfo = { 0 };
     RtlGetVersion(&VersionInfo);
@@ -87,7 +87,7 @@ INT32 GetWindowsVersion() {
     }
 }
 
-// §ì¨ú CR3¡]DirectoryTableBase¡^
+// æŠ“å– CR3
 UINT64 GetProcessCr3(PEPROCESS Process) {
     if (!Process) return 0;
 
@@ -110,7 +110,7 @@ UINT64 GetProcessCr3(PEPROCESS Process) {
     return dirbase;
 }
 
-// µêÀÀ¦a§} -> ª«²z¦a§}Âà´«
+// è™›æ“¬åœ°å€ -> ç‰©ç†åœ°å€è½‰æ›
 UINT64 TranslateLinearAddress(UINT64 DirectoryTableBase, UINT64 VirtualAddress) {
     DirectoryTableBase &= ~0xf;
 
@@ -147,12 +147,12 @@ UINT64 TranslateLinearAddress(UINT64 DirectoryTableBase, UINT64 VirtualAddress) 
     return (PteEntry & PageMask) + PageOffset;
 }
 
-// ³Ì¤p­È¿ï¾Ü¾¹
+// æœ€å°å€¼é¸æ“‡å™¨
 ULONG64 FindMin(INT32 A, SIZE_T B) {
     return (A < (INT32)B) ? A : (INT32)B;
 }
 
-// Handle Read ½Ğ¨D
+// Handle Read è«‹æ±‚
 NTSTATUS HandleReadRequest(PReadWriteRequest Request) {
     if (Request->Security != PaysonSecurity || !Request->ProcessId)
         return STATUS_UNSUCCESSFUL;
@@ -179,7 +179,7 @@ NTSTATUS HandleReadRequest(PReadWriteRequest Request) {
     return STATUS_SUCCESS;
 }
 
-// Handle BaseAddress ½Ğ¨D
+// Handle BaseAddress è«‹æ±‚
 NTSTATUS HandleBaseAddressRequest(PBaseAddressRequest Request) {
     if (Request->Security != PaysonSecurity || !Request->ProcessId)
         return STATUS_UNSUCCESSFUL;
@@ -197,7 +197,7 @@ NTSTATUS HandleBaseAddressRequest(PBaseAddressRequest Request) {
     return STATUS_SUCCESS;
 }
 
-// IO ±±¨î³B²z
+// IO æ§åˆ¶è™•ç†
 NTSTATUS IoControlHandler(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     UNREFERENCED_PARAMETER(DeviceObject);
 
@@ -224,7 +224,7 @@ NTSTATUS IoControlHandler(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     return Status;
 }
 
-// ¤£¤ä´©ªº IRP Dispatch
+// ä¸æ”¯æ´çš„ IRP Dispatch
 NTSTATUS UnsupportedDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     UNREFERENCED_PARAMETER(DeviceObject);
     Irp->IoStatus.Status = STATUS_NOT_SUPPORTED;
@@ -232,20 +232,20 @@ NTSTATUS UnsupportedDispatch(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     return Irp->IoStatus.Status;
 }
 
-// ¤ä´©¶}Ãö IRP
+// æ”¯æ´é–‹é—œ IRP
 NTSTATUS DispatchHandler(PDEVICE_OBJECT DeviceObject, PIRP Irp) {
     UNREFERENCED_PARAMETER(DeviceObject);
     IoCompleteRequest(Irp, IO_NO_INCREMENT);
     return Irp->IoStatus.Status;
 }
 
-// ¨ø¸ü Driver
+// å¸è¼‰ Driver
 void UnloadDriver(PDRIVER_OBJECT DriverObject) {
     IoDeleteSymbolicLink(&SymbolicLinkName);
     IoDeleteDevice(DriverObject->DeviceObject);
 }
 
-// ªì©l¤ÆÅX°Ê
+// åˆå§‹åŒ–é©…å‹•
 NTSTATUS InitializeDriver(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
     UNREFERENCED_PARAMETER(RegistryPath);
 
@@ -278,7 +278,7 @@ NTSTATUS InitializeDriver(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryP
     return Status;
 }
 
-// DriverEntry¡]¤J¤f¡^
+// DriverEntry
 NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) {
     UNREFERENCED_PARAMETER(DriverObject);
     UNREFERENCED_PARAMETER(RegistryPath);
@@ -288,3 +288,4 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT DriverObject, PUNICODE_STRING RegistryPath) 
 
     return IoCreateDriver(NULL, InitializeDriver);
 }
+
