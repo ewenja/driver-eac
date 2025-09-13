@@ -12,25 +12,11 @@
 ````markdown
 # Driver-EAC 技術研究報告
 
-##  目錄
-1. [前言](#前言)  
-2. [EAC 核心架構](#eac-核心架構)  
-   - [Client Module](#client-module)  
-   - [Kernel Driver](#kernel-driver)  
-   - [Backend & Analytics](#backend--analytics)  
-   - [Game Developer Integration](#game-developer-integration)  
-3. [驗證與偵測技術](#驗證與偵測技術)  
-4. [技術示例（Pseudo-code）](#技術示例pseudo-code)  
-5. [限制與挑戰](#限制與挑戰)  
-6. [防禦建議](#防禦建議)  
-7. [未來工作](#未來工作)  
-8. [結論](#結論)  
-
 ---
 
 ## 前言
-隨著線上遊戲產業規模的擴張，作弊問題對於公平性與商業利益造成嚴重威脅。  
-Epic Games 開發的 **Easy Anti-Cheat (EAC)** 是目前業界廣泛使用的反作弊解決方案之一。  
+隨著線上遊戲產業規模的擴張，作弊問題對於公平性與商業利益造成嚴重威脅
+Epic Games 開發的 **Easy Anti-Cheat (EAC)** 是目前業界廣泛使用的反作弊解決方案之一  
 
 EAC 採用分層式防禦，涵蓋：
 - 使用者層檢測
